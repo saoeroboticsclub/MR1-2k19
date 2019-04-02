@@ -1,6 +1,7 @@
 void lcd_func() {
 
   if (flag) {
+    lcd.begin(20, 4);
     lcd.clear();
     flag = 0;
   }

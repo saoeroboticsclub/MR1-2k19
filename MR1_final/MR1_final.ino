@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
 
-#define dir1 7      //1->clockwise,0->Anticlockwise
+#define dir1 7      //1 -> Clockwise, 0 -> Anticlockwise
 #define dir2 13
 #define dir3 11
 
@@ -10,16 +10,14 @@
 #define pwm2 12
 #define pwm3 10
 
-#define throw_D1 23      //1->forward,0->backward 
-#define throw_P1 4
+#define throw_D 9     //1 -> Forward, 0 -> Backward 
+#define throw_P 8
 
 #define piston_1a 33
 #define piston_1b 31
 
 #define piston_2a 29
 #define piston_2b 27
-
-#define ir1 39          //0->normally  1->detecting
 
 #define PS2_DAT A0
 #define PS2_CMD A1
@@ -59,13 +57,11 @@ void setup() {
   pinMode(dir2, OUTPUT);
   pinMode(dir3, OUTPUT);
 
-  pinMode(throw_D1, OUTPUT);
-
+  pinMode(throw_D, OUTPUT);
   pinMode(piston_1a, OUTPUT);
   pinMode(piston_1b, OUTPUT);
   pinMode(piston_2a, OUTPUT);
   pinMode(piston_2b, OUTPUT);
-  pinMode(ir1, INPUT_PULLUP);
 
   /* A 0 on the 0th byte indicates that arduino was reset automatically and latest values of motor speed and throwing status
       is restored.  */
@@ -78,8 +74,8 @@ void setup() {
 
   piston1close();
   piston2close();
-  stop_motor();
-  stop_();
+  stop_motors();
+  stop_arm();
   waiting();
 
 }
@@ -89,5 +85,6 @@ void loop()
   lcd_func();
   ps2.read_gamepad();
   delay(30);
+  //  eight_directions();
   Read_button();
 }

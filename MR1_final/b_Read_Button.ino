@@ -6,13 +6,22 @@ void Read_button() {
     return;
   }
 
-  if (ps2.Button(PSB_R1)) {
-    run_motor(m1c,  0.40 * spd, m2c,  0.40 * spd, m3c,  0.40 * spd);
+  if ((ps2.Button(PSB_R1)) && (ps2.Button(PSB_PAD_UP)) && !(r_flag || l_flag)){
+    Curve_Clockwise();
+    Serial.println("CURVE CLOCKWISE");
+  }
+  else if ((ps2.Button(PSB_L1)) && (ps2.Button(PSB_PAD_UP)) && !(r_flag || l_flag)){
+    Curve_Anti();
+    Serial.println("CURVE ANTI-CLOCKWISE");
+  }
+
+  else if (ps2.Button(PSB_R1)) {
+    run_motors(m1c,  0.40 * spd, m2c,  0.40 * spd, m3c,  0.40 * spd);
     Serial.println("Clockwise");
   }
 
   else if (ps2.Button(PSB_L1)) {
-    run_motor(m1ac,  0.40 * spd, m2ac,  0.40 * spd, m3ac, 0.40 * spd);
+    run_motors(m1ac,  0.40 * spd, m2ac,  0.40 * spd, m3ac, 0.40 * spd);
     Serial.println("Anti-Clockwise");
   }
 
@@ -25,6 +34,7 @@ void Read_button() {
   //    resetFunc();
   //  }
 
+  //Timer Control
   else if (ps2.ButtonReleased(PSB_SELECT)) {
     lcd_flag++;
     if (lcd_flag == 1) {
@@ -68,50 +78,39 @@ void Read_button() {
     Serial.println("Speed Decreased : " + String(spd));
   }
 
-
-
-
-  //forward
+  //Forward
   else if (ps2.Button(PSB_PAD_UP) && !(r_flag || l_flag)) {
     if (lcd_flag == 1) {
       last = millis();
       lcd_flag = 2;
     }
+    
     forward_12();
-    //    check++;
-    //    if (check == 4)
-    //      check = 1;
-    //    forward_12();
-    //    //run_motor(m1c, 0, m2ac, 180, m3c, 121);
     Serial.println("Forward");
   }
-  //right
+
+  //Right
   else if (ps2.Button(PSB_PAD_RIGHT)) {
     r_flag = 1;
     right_12();
-    //    if (check == 1)
-    //      right_1();
-    //    else if (check == 2)
-    //      right_2();
-    //    else if (check == 3)
-    //      right_3();
-    //
-    //    Serial.println("Left");
     Serial.println("Right");
   }
-  //left
+
+  //Left
   else if (ps2.Button(PSB_PAD_LEFT) ) {
     left_12();
     l_flag = 1;
-   
+
     Serial.println("Left");
   }
-  //backward
+  
+  //Backward
   else if (ps2.Button(PSB_PAD_DOWN) && !(r_flag || l_flag)) {
     backward_12();
     Serial.println("Down");
   }
-  //eight directions
+  
+  //Eight directions
   else if (( ps2.Analog(PSS_LX) != 128 ||  ps2.Analog(PSS_LY) != 127)) {
     eight_directions();
   }
@@ -119,7 +118,6 @@ void Read_button() {
   //Kiwi Drive (Active only when right joystick moved)
   else if (( ps2.Analog(PSS_RX) != 128 ||  ps2.Analog(PSS_RY) != 127)) {
     kiwi();
-    //    run_motor(md1, w1, md2, w2, md3, w3);
   }
 
   else {
@@ -127,41 +125,31 @@ void Read_button() {
     px = 0; py = 0;
     r_flag = 0;
     l_flag = 0;
-    stop_motor();
-    stop_();
-    Serial.println("stop");
+    stop_motors();
+    stop_arm();
+    Serial.println("Stop");
   }
-
-  //  ps2.read_gamepad();
-  //  delay(50);
 
   //Throwing Logic
 
-  //arm forward
+  //Arm forward
   if (ps2.Button(PSB_TRIANGLE) ) {
-    digitalWrite(throw_D1, HIGH);
-    analogWrite(throw_P1, 80);
-    Serial.println("Triangle");
+    digitalWrite(throw_D, HIGH);
+    analogWrite(throw_P, 100);
+    Serial.println("Arm Forward");
   }
 
   //Arm backward
   else if (ps2.Button(PSB_CIRCLE)) {
-    //Serial.println(digitalRead(ir1));
-    Serial.println("Circle");
-    digitalWrite(throw_D1, LOW);
-    analogWrite(throw_P1, 180);
-    //      if (digitalRead(ir1) == 0) {
-    //        piston1close();
-    //      }
-    ir1_flag = 1;
+    Serial.println("Arm Backward");
+    digitalWrite(throw_D, LOW);
+    analogWrite(throw_P, 180);
   }
 
   //Piston1 open or close
   else if (ps2.ButtonReleased(PSB_CROSS)) {
     ps2.read_gamepad();
-    Serial.println("Cross");
-
-    ir1_flag = 0;
+    Serial.println("Piston 1 Switching");
     count = ++count % 2;
     (count == 1) ? (piston1open()) : (piston1close());
   }
@@ -169,15 +157,14 @@ void Read_button() {
   //Piston2 open or close
   else if (ps2.ButtonReleased(PSB_SQUARE)) {
     ps2.read_gamepad();
-    Serial.println("Square");
+    Serial.println("Piston 2 Switching");
     count1 = ++count1 % 2;
     (count1 == 1) ? (piston2open()) : (piston2close());
   }
 
   else {
-    stop_();
-    ir1_flag = 0;
-    analogWrite(throw_P1, 0);
+    stop_arm();
+    analogWrite(throw_P, 0);
   }
 }
 
@@ -186,10 +173,10 @@ void waiting() {
   Serial.println("Waiting");
   while (error) {
     error = ps2.config_gamepad(PS2_CLK, PS2_CMD, PS2_SEL, PS2_DAT, pressures, rumble);
-    if (error)
-      delay(500);
+    if (error)  delay(500);
   }
   pinMode(PS2_DAT, INPUT_PULLUP);
   lcd.clear();
   Serial.println("Connections Alright !");
 }
+
